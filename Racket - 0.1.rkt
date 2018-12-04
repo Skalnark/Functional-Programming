@@ -30,7 +30,7 @@
                                 x                                
                                 (* x (potencia-positiva x (- y 1)))))
 (define (potencia-negativa x y)(if (= y -1)
-                                (/ x x)
+                                (/ 1 x)
                                 (/ (potencia-negativa x (+ y 1)) x)))
 
 (define (potencia x y)(
