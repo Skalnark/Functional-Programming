@@ -16,7 +16,19 @@
   (if (or (= m 0) (= n 0)) 0
       (if (= 1 m)
           n
-          (+ n (mult (sub1 m) n)))))
+          ;;(+ n (mult (sub1 m) n)))))
+          ;; (i)
+          (tail-mult m n 0))))
+
+(define (tail-mult m n acm)
+      (if (= 1 m)
+          (+ n acm)
+          ;; (ii)
+          (tail-mult (sub1 m) n (+ n acm))))
+
+;; Como o resultado de mult não depende de (i)
+;; nem o resultado de tail-mult não depende de (ii)
+;; a otimização da recursividade de cauda pode ser feita
 
 (define-test-suite testes-mult
   (test-equal? "3 * 4"  (mult 3 4)    12)
@@ -34,7 +46,7 @@
 
 (define (sub m n)
   (if (= n 0) m
-      (sub (sub1 m) (sub1 n)))) 
+      (sub (sub1 m) (sub1 n))))
 
 (define-test-suite testes-sub
   (test-equal? "42 - 0"  (sub 42 0)   42)
@@ -116,8 +128,14 @@
 ;; Crie uma função recursiva soma-lista (abaixo) que, dada uma lista de números,
 ;; calcula a soma dos números contidos
 (define (soma-lista l)
-  (if (null? l) 0 (+ (first l) (soma-lista (rest l)))))
+  (if (null? l) 0 
+      ;;(+ (first l) (soma-lista (rest l)))))
+    (tail-soma-lista l 0)))
 
+(define (tail-soma-lista l acm)
+  (if (empty? l) acm
+      (tail-soma-lista (rest l) (+ acm (first l)))))
+    
 (define-test-suite testes-soma-lista
   (test-equal? "soma da lista vazia"                (soma-lista '())                  0)
   (test-equal? "soma de um número apenas"           (soma-lista '(13))                13)
@@ -130,7 +148,12 @@
 ;; Crie uma função recursiva mult-lista (abaixo) que, dada uma lista de números,
 ;; calcula o produto dos números contidos (a lista vazia deve ter produto igual a 1)
 (define (mult-lista l)
-  (if (null? l) 1 (* (first l) (mult-lista (rest l)))))
+  (if (null? l) 1;; (* (first l) (mult-lista (rest l)))))
+  (tail-mult-lista l 1)))
+
+(define (tail-mult-lista l acm)
+  (if (empty? l) acm
+      (tail-mult-lista (rest l) (* acm (first l)))))
 
 (define-test-suite testes-mult-lista
   (test-equal? "produto da lista vazia"            (mult-lista '())                  1)
@@ -144,7 +167,14 @@
 ;; Crie uma função recursiva max-lista (abaixo) que, dada uma lista de números naturais,
 ;; calcula o maior número entre os presentes na lista. Use (max-lista '()) = 0.
 (define (max-lista l)
-  (if(null? l) 0 (if(> (first l) (max-lista (rest l))) (first l) (max-lista (rest l)))))      
+  (if (empty? l) 0
+     ;;(if(> (first l) (max-lista (rest l))) (first l) (max-lista (rest l)))))
+      (tail-max-lista l 0)))
+
+(define (tail-max-lista l x)
+  (if (empty? l) x
+      (if (> x (first l)) (tail-max-lista (rest l) x)
+          (tail-max-lista (rest l) (first l)))))
 
 (define-test-suite testes-max-lista
   (test-equal? "maximo da lista vazia"       (max-lista '())                     0)
@@ -180,8 +210,14 @@
 ;; original (nas mesmas posições)
 (define (quadrado-lista l)
   (if (null? l) '()
-      (cons (* (first l) (first l))
-            (quadrado-lista (rest l)))))
+      ;;(cons (* (first l) (first l))
+            ;;(quadrado-lista (rest l)))))
+      (tail-quadrado-lista l '())))
+
+(define (tail-quadrado-lista l acm)
+  (if (empty? l) (reverse acm)
+      (tail-quadrado-lista (rest l) (cons ((lambda (x)(* x x))(first l)) acm))))
+      
 
 (define-test-suite testes-quadrado-lista
   (test-equal? "quadrado da lista vazia"  (quadrado-lista '())        '())
@@ -197,8 +233,15 @@
 ;; os números pares da lista original. Use a função par definida no exercício 3
 (define (filtra-par l)
   (if (null? l) '()
-      (if (par (first l)) (cons (first l) (filtra-par (rest l)))
-          (filtra-par (rest l)))))
+      ;;(if (par (first l)) (cons (first l) (filtra-par (rest l)))
+          ;;(filtra-par (rest l)))))
+      (tail-filtra-par l '())))
+
+(define (tail-filtra-par l acm)
+  (cond
+    [(empty? l) (reverse acm)]
+    [(par (first l)) (tail-filtra-par (rest l) (cons (first l) acm))]
+    [(tail-filtra-par (rest l) acm)]))
 
 (define-test-suite testes-filtra-par
   (test-equal? "filtragem da lista vazia"     (filtra-par '())                  '())
@@ -225,3 +268,4 @@
              testes-quadrado-lista
              testes-filtra-par
              ))
+

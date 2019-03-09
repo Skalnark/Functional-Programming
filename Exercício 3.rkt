@@ -25,10 +25,18 @@
 ;; (remove-primeiro x lst) remove a primeira ocorrência do elemento x
 ;; na lista lst (se houver), retornando uma nova lista com o resultado.
 ;; Veja os testes para exemplos.
+
 (define (remove-primeiro x lst)
   (if (empty? lst) '()
-   (if (equal? x (first lst)) (rest lst)
-    (cons (first lst) (remove-primeiro x (rest lst))))))
+   ;;(if (equal? x (first lst)) (rest lst)
+    ;;(cons (first lst) (remove-primeiro x (rest lst))))))
+  (tail-remove-primeiro x lst '())))
+
+(define (tail-remove-primeiro x lst acc)
+  (cond
+    [(empty? lst) (reverse acc)]
+    [(equal? (first lst) x) (append (reverse acc) (rest lst))]
+    [(tail-remove-primeiro x (rest lst) (cons (first lst) acc))]))
    
 
 (define-test-suite test-remove-primeiro
@@ -52,8 +60,15 @@
 ;; na lista lst (se houver), retornando uma nova lista com o resultado.
 (define (remove-todos x lst)
   (if (empty? lst) '()
-      (if (equal? x (first lst)) (remove-todos x (rest lst))
-          (cons (first lst) (remove-todos x (rest lst))))))
+      ;;(if (equal? x (first lst)) (remove-todos x (rest lst))
+          ;;(cons (first lst) (remove-todos x (rest lst))))))
+      (tail-remove-todos x lst '())))
+
+(define (tail-remove-todos x lst acm)
+  (cond
+    [(empty? lst) (reverse acm)]
+    [(equal? x (first lst)) (tail-remove-todos x (rest lst) acm)]
+    [(tail-remove-todos x (rest lst) (cons (first lst) acm))]))
 
 (define-test-suite test-remove-todos
   (test-equal? "lista vazia"           (remove-todos 5 '())              '())
@@ -101,7 +116,8 @@
   (test-false "lista vazia"    (pertence? 5 '()))
   (test-true  "3 pertence"     (pertence? 3 '(1 2 3 4 5)))
   (test-false "9 não pertence" (pertence? 9 '(1 2 3 4 5)))
-  (test-true  "5 pertence"     (pertence? 5 '(1 2 3 4 5))))
+  (test-true  "5 pertence"     (pertence? 5 '(1 2 3 4 5)))
+  (test-true  "lista de lista" (pertence? '(1 2) (list '(1 2) '(2 3) '(3 4)))))
 
 
 ;; --- Questão 5 ----------------------------
@@ -117,7 +133,13 @@
 (define (combine l1 l2)
   (if (empty? l1) '()
       (if (empty? l2) '()
-          (cons (list (first l1) (first l2)) (combine (rest l1) (rest l2))))))
+          ;;(cons (list (first l1) (first l2)) (combine (rest l1) (rest l2))))))
+          (tail-combine l1 l2 '()))))
+(define (tail-combine l1 l2 acm)
+  (cond
+    [(empty? l1) (reverse acm)]
+    [(empty? l2) (reverse acm)]
+    [(tail-combine (rest l1) (rest l2) (cons (list (first l1) (first l2)) acm))]))
 
 (define-test-suite test-combine
   (test-equal? "listas de mesmo tamanho"
@@ -185,9 +207,16 @@
 ;; sem que nenhum item ocorra mais de uma vez.
 (define (remove-duplicatas lst)
   (if (empty? lst) '()
-      (if (empty? (rest lst)) lst
-          (if (pertence? (first lst) (rest lst)) (remove-duplicatas (rest lst))
-              (cons (first lst) (remove-duplicatas (rest lst)))))))
+      ;;(if (empty? (rest lst)) lst
+          ;;(if (pertence? (first lst) (rest lst)) (remove-duplicatas (rest lst))
+              ;;(cons (first lst) (remove-duplicatas (rest lst)))))))
+      (tail-remove-duplicatas lst '())))
+
+(define (tail-remove-duplicatas lst acm)
+  (cond
+    [(empty? lst) (reverse acm)]
+    [(pertence? (first lst) (rest lst)) (tail-remove-duplicatas (rest lst) acm)]
+    [(tail-remove-duplicatas (rest lst) (cons (first lst) acm))]))
 
 ;; Um outro nome para a mesma função poderia ser lista->conjunto, enfatizando a
 ;; sua aplicação na criação de conjuntos a partir de listas. Nesse caso podemos
@@ -254,8 +283,16 @@
 (define (interseccao c1 c2)
   (if (empty? c1) '()
       (if (empty? c2) '()
-          (if (pertence? (first c1) c2) (cons (first c1) (interseccao (rest c1) c2))
-              (interseccao (rest c1) c2)))))
+          ;;(if (pertence? (first c1) c2) (cons (first c1) (interseccao (rest c1) c2))
+              ;;(interseccao (rest c1) c2)))))
+          (tail-interseccao c1 c2 '()))))
+
+(define (tail-interseccao c1 c2 acm)
+  (cond
+    [(empty? c1) (reverse acm)]
+    [(empty? c2) (reverse acm)]
+    [(pertence? (first c1) c2) (tail-interseccao (rest c1) c2 (cons (first c1) acm))]
+    [(tail-interseccao (rest c1) c2 acm)]))
 
 (define-test-suite test-interseccao
   (test-equal? "Conjuntos vazios"        (interseccao '()      '())      '())
@@ -283,11 +320,29 @@
 ;; não pertencem a c2. Por exemplo, (diferenca '(1 3 5 7) '(3 7)) deve retornar
 ;; '(1 5) (não necessariamente nesta ordem).
 (define (diferenca c1 c2)
-  '())
+  (cond
+    [(empty? c1) c2]
+    [(empty? c2) c1]
+    [(tail-diferenca c1 c2 c1 '())]))
+
+(define (tail-diferenca c1 c2 backup acm)
+  (cond
+    [(empty? c1)
+     (if (equal? c2 backup) (remove-duplicatas (reverse acm))
+         (tail-diferenca c2 backup backup acm))]
+    [(pertence? (first c1) c2) (tail-diferenca (rest c1) c2 backup acm)]
+    [(tail-diferenca (rest c1) c2 backup (cons (first c1) acm))]))
 
 ;; Para esta função, escreva também um conjunto de testes, e adicione a suite de 
 ;; testes criados à execução de todos os testes, abaixo. Você pode escrever os
 ;; testes antes ou depois de implementar a função.
+
+(define-test-suite test-diferenca
+  (test-equal? "conjuntos vazios" (diferenca '() '()) '())
+  (test-equal? "primeiro conjunto vazio" (diferenca '() '(1 2 3)) '(1 2 3))
+  (test-equal? "segundo conjunto vazio" (diferenca '(1 2 3) '()) '(1 2 3))
+  (test-equal? "conjuntos distintos" (diferenca '(1 2 3) '(4 5 6)) '(1 2 3 4 5 6))
+  (test-equal? "conjunto de conjuntos" (diferenca (list '(1 2) '(3 4) 1 2 3) (list '(1 2) 1 3 2 5)) (list '(3 4) 5)))
 
 
 ;; --- Executa todos os testes ---------
@@ -302,4 +357,5 @@
              test-remove-duplicatas
              test-uniao
              test-interseccao
+             test-diferenca
              ))
