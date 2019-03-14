@@ -27,7 +27,14 @@
 ;; (ou seja, que retornam #t quando passadas para p). Escreva a função filter,
 ;; seguindo o padrão acima. Opcionalmente, escreva filter de maneira mais
 ;; eficiente, com recursividade de cauda.
-(define (filter p lst) #f)
+(define (filter p lst)
+  (define (loop lst acc)
+    (cond
+      [(empty? lst) (reverse acc)]
+      [(p (first lst)) (loop (rest lst) (cons (first lst) acc))]
+      [(loop (rest lst) acc)]))
+  (if (empty? lst) '()
+    (loop lst '())))
 
 (define-test-suite test-filter
   (test-equal? "Lista vazia" (filter (lambda (x) #t) '()) '())
@@ -48,9 +55,11 @@
 ;; apenas os números pares e ímpares, respectivamente, de uma lista de números.
 ;; Racket já define os predicados even? e odd? para testar se um número é par ou
 ;; ímpar (respectivamente)
-(define (filtra-par lst) #f)
+(define (filtra-par lst) 
+  (filter even? lst))
 
-(define (filtra-impar lst) #f)
+(define (filtra-impar lst)
+  (filter odd? lst))
 
 (define-test-suite test-filtra-par-impar
   (test-equal? "lista vazia - par"   (filtra-par '())    '())
@@ -69,14 +78,17 @@
 ;; filtra-par-lg. Em Racket existe o predicado integer? que retorna
 ;; #t se o parâmetro passado é um número inteiro.
 ;;
-(define (filtra-par-lg lst) #f)  ;; lst pode conter valores de qualquer tipo
+(define (filtra-par-lg lst)  ;; lst pode conter valores de qualquer tipo
+  (filter
+    (lambda (x) (and (integer? x) (even? x)))
+    lst))
 
 (define-test-suite test-filtra-lg
   (test-equal? "lista vazia" (filtra-par-lg '()) '())
   
   (test-equal? "apenas inteiros"
                (filtra-par-lg (list 1 2 3 4 5 6))
-               '(2 4))
+               '(2 4 6))
   
   (test-equal? "apenas pares"
                (filtra-par-lg (list 2 4 6))
@@ -97,7 +109,8 @@
 ;; Escreva a função filtra-comp para filtrar o complemento de um
 ;; predicado, ou seja, (filtra-comp p lst) retorna uma lista com
 ;; os itens da lista lst para os quais o predicado p retorna #f.
-(define (filtra-comp p lst) #f)
+(define (filtra-comp p lst)
+  (filter (lambda (x) (not ( p x))) lst))
 
 (define-test-suite test-filtra-comp
   (test-equal? "lista vazia" (filtra-comp (lambda (x) #f) '()) '())
@@ -127,7 +140,8 @@
 ;; bom número de strings (100 mil, 1 milhão), e teste as duas funções usando a
 ;; macro time da linguagem Racket: (time exp) avalia o valor da expressão exp
 ;; e imprime o tempo que foi usado na avaliação da expressão.
-(define (tamanho-lista-strings lstr) #f)
+(define (tamanho-lista-strings lstr)
+  (foldl + 0 (map string-length lstr)))
 
 (define-test-suite test-tamanho-lista
   (test-equal? "lista vazia" (tamanho-lista-strings '()) 0)
@@ -145,7 +159,7 @@
 ;; Escreva uma função todos? tal que (todos? p lst) retorna #t se todos
 ;; os elementos da lista lst satisfazem o predicado p, e #f caso contrário.
 ;;
-(define (todos? p lst) 0)
+(define (todos? p lst) #f)
 
 (define-test-suite test-todos
   (test-true  "lista vazia" (todos? (lambda (x) #f) '()))
