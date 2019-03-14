@@ -159,7 +159,13 @@
 ;; Escreva uma função todos? tal que (todos? p lst) retorna #t se todos
 ;; os elementos da lista lst satisfazem o predicado p, e #f caso contrário.
 ;;
-(define (todos? p lst) #f)
+(define (todos? p lst)
+  (foldl
+   (lambda (x y) (and x y))
+   #t
+   (map p lst)
+   )
+  )
 
 (define-test-suite test-todos
   (test-true  "lista vazia" (todos? (lambda (x) #f) '()))
@@ -177,7 +183,13 @@
 ;; Escreva uma função algum? tal que (algum? p lst) retorna #t se algum
 ;; elemento da lista lst satisfaz o predicado p, e #f caso contrário.
 ;;
-(define (algum? p lst) 0)
+(define (algum? p lst)
+  (foldl
+   (lambda (x y) (or x y))
+   #f
+   (map p lst)
+   )
+  )
 
 (define-test-suite test-algum
   (test-false "lista vazia" (algum? (lambda (x) #f) '()))
@@ -199,7 +211,8 @@
 ;; Escreva a função partition que retorna uma lista com dois elementos: o primeiro
 ;; é uma lista com os elementos de lst que satisfazem o predicado, e o segundo
 ;; é a lista com os elementos que não satisfazem.
-(define (partition p lst) #f)
+(define (partition p lst)
+  (list (filtra-comp (lambda (x)(not (p x))) lst) (filtra-comp p lst)))
 
 (define-test-suite test-partition
   (test-equal? "Lista vazia"
@@ -246,4 +259,5 @@
              test-tamanho-lista
              test-todos
              test-algum
-             test-partition))
+             test-partition
+             ))
