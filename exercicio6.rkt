@@ -246,8 +246,20 @@
 ;; Crie também um conjunto de testes e inclua a suíte de testes criados
 ;; na execução dos testes ao final do arquivo. Inclua nos testes listas
 ;; com números reais, positivos e negativos, menores que 1, e zero. 
-(define (menor-quociente x lst) #f)
-
+(define (menor-quociente x lst)
+  (cond [(empty? lst) 0]
+        [(zero? x) 0]
+        [(foldl (lambda (a b)
+           (if (zero? b) a (if (< (/ a x) (/ b x)) a b)))
+         (first lst)
+         (rest lst))]))
+(define-test-suite test-menor-quociente
+  (test-equal? "lista vazia" (menor-quociente 10 '()) 0)
+  (test-equal? "caso do exemplo" (menor-quociente 12 '(6 4 3)) 3)
+  (test-equal? "só números reais e menores que 1" (menor-quociente 4/7 '(10/3 5/9 1/20 8/5)) 1/20)
+  (test-equal? "números negativos" (menor-quociente -3 '(-3 -2 -5 -19 -9)) -2)
+  (test-equal? "zero" (menor-quociente 0 '(1 2 3 4 6)) 0)
+  )
 
 ;; --- Executa todos os testes ---------
 (run-tests
@@ -260,4 +272,5 @@
              test-todos
              test-algum
              test-partition
+             test-menor-quociente
              ))
